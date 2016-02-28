@@ -4,6 +4,7 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
+      <itemPath>MotionSensor/pi2golite.h</itemPath>
     </logicalFolder>
     <logicalFolder name="MotionSensor"
                    displayName="MotionSensor"
@@ -34,6 +35,7 @@
                    displayName="Source Files"
                    projectFiles="true">
       <itemPath>main.cpp</itemPath>
+      <itemPath>MotionSensor/pi2golite.cpp</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
                    displayName="Test Files"
@@ -61,10 +63,10 @@
       </toolsSet>
       <compileType>
         <cTool>
-          <commandLine>-lwiringPi</commandLine>
+          <commandLine>-lwiringPi -lpthread</commandLine>
         </cTool>
         <ccTool>
-          <commandLine>-lwiringPi</commandLine>
+          <commandLine>-lwiringPi -lpthread</commandLine>
         </ccTool>
       </compileType>
       <item path="MotionSensor/I2Cdev/I2Cdev.c" ex="false" tool="0" flavor2="0">
@@ -95,6 +97,10 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="MotionSensor/pi2golite.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="MotionSensor/pi2golite.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="MotionSensor/sensor.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="MotionSensor/sensor.h" ex="false" tool="3" flavor2="0">
@@ -111,11 +117,11 @@
       <compileType>
         <cTool>
           <developmentMode>5</developmentMode>
-          <commandLine>-lwiringPi</commandLine>
+          <commandLine>-lwiringPi -lpthread</commandLine>
         </cTool>
         <ccTool>
           <developmentMode>5</developmentMode>
-          <commandLine>-lwiringPi</commandLine>
+          <commandLine>-lwiringPi -lpthread</commandLine>
         </ccTool>
         <fortranCompilerTool>
           <developmentMode>5</developmentMode>
@@ -151,6 +157,10 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="MotionSensor/pi2golite.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="MotionSensor/pi2golite.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="MotionSensor/sensor.cpp" ex="false" tool="1" flavor2="0">
       </item>

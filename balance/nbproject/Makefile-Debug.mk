@@ -39,16 +39,17 @@ OBJECTFILES= \
 	${OBJECTDIR}/MotionSensor/balance.o \
 	${OBJECTDIR}/MotionSensor/inv_mpu_lib/inv_mpu.o \
 	${OBJECTDIR}/MotionSensor/inv_mpu_lib/inv_mpu_dmp_motion_driver.o \
+	${OBJECTDIR}/MotionSensor/pi2golite.o \
 	${OBJECTDIR}/MotionSensor/sensor.o \
 	${OBJECTDIR}/main.o
 
 
 # C Compiler Flags
-CFLAGS=-lwiringPi
+CFLAGS=-lwiringPi -lpthread
 
 # CC Compiler Flags
-CCFLAGS=-lwiringPi
-CXXFLAGS=-lwiringPi
+CCFLAGS=-lwiringPi -lpthread
+CXXFLAGS=-lwiringPi -lpthread
 
 # Fortran Compiler Flags
 FFLAGS=
@@ -86,6 +87,11 @@ ${OBJECTDIR}/MotionSensor/inv_mpu_lib/inv_mpu_dmp_motion_driver.o: MotionSensor/
 	${MKDIR} -p ${OBJECTDIR}/MotionSensor/inv_mpu_lib
 	${RM} "$@.d"
 	$(COMPILE.c) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/MotionSensor/inv_mpu_lib/inv_mpu_dmp_motion_driver.o MotionSensor/inv_mpu_lib/inv_mpu_dmp_motion_driver.c
+
+${OBJECTDIR}/MotionSensor/pi2golite.o: MotionSensor/pi2golite.cpp 
+	${MKDIR} -p ${OBJECTDIR}/MotionSensor
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/MotionSensor/pi2golite.o MotionSensor/pi2golite.cpp
 
 ${OBJECTDIR}/MotionSensor/sensor.o: MotionSensor/sensor.cpp 
 	${MKDIR} -p ${OBJECTDIR}/MotionSensor

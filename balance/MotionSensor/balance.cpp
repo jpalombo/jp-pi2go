@@ -10,7 +10,7 @@
 
 void balance_init()
 {
-    wiringPiSetup ();
+    wiringPiSetupPhys ();
     ms_open();
 }
 
