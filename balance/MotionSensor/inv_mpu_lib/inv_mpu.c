@@ -39,7 +39,7 @@
 #if defined RPI_TARGET
 #include <sys/time.h>
 #include <unistd.h>
-#include "I2Cdev/I2Cdev.h"
+#include "../I2Cdev/I2Cdev.h"
 
 #define min(a,b) ((a)<(b)?(a):(b))
 #define i2c_write   writeBytes
