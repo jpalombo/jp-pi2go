@@ -11,12 +11,11 @@ extern "C" {
 }
 
 // MPU control/status vars
-unsigned char devStatus;
 unsigned long timestamp;
 
 #define DIM 3
-short accel[DIM]; // [x, y, z]            accel vector
-short gyro[DIM]; // [x, y, z]            gyro vector
+short accel[DIM]; // [x, y, z]           accel vector
+short gyro[DIM];  // [x, y, z]           gyro vector
 short gyrotrim;
 short acceltrim = 300;
 
@@ -74,14 +73,18 @@ int ms_open() {
     return 0;
 }
 
-int ms_update() {
-    if ((mpu_get_accel_reg(accel, &timestamp) == 0) &&
-        (mpu_get_gyro_reg(gyro, &timestamp) == 0)) {
-        printf("accel = %i\tgyro = %i\n",
-		        (accel[2] * 1000 / accel[1]) - acceltrim,
-                        gyro[0] - gyrotrim);
-    }
-    return 0;
+int angle_err(){
+    if (mpu_get_accel_reg(accel, &timestamp) == 0)
+        return (accel[2] * 1000 / accel[1]) - acceltrim;
+    else
+        return 0;
+}
+
+int gyro_err() {
+    if (mpu_get_gyro_reg(gyro, &timestamp) == 0)
+        return gyro[0] - gyrotrim;
+    else
+        return 0;
 }
 
 int ms_close() {

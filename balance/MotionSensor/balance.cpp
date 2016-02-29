@@ -4,18 +4,20 @@
  * and open the template in the editor.
  */
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include "sensor.h"
 #include <wiringPi.h>
+#include "pi2golite.h"
 
 void balance_init()
 {
     wiringPiSetupPhys ();
+    pi2go::init();
     ms_open();
 }
 
-void balance_loop()
-{
+void timeloop() {
     static int loopcount = 0;
     static unsigned int lastsecs = 0;
     unsigned int thissecs; 
@@ -30,6 +32,28 @@ void balance_loop()
         printf("Loops per sec = %i\n", loopcount);
         loopcount = 0;
     }
-    ms_update();
+}
+
+int maxangle = 300;
+
+void balance_loop()
+{
+    // Stats on how many loops per second we are getting
+    timeloop();
+    
+    int angle = angle_err();
+    int gyro = gyro_err();
+    
+    printf("Angle Err: %i \tGyro Err: %i\n", angle, gyro);
+    
+    if (abs(angle) > maxangle) {
+        // we're done
+        pi2go::stop();
+        return;
+    }
+    
+    int speed = angle * 100 / maxangle;
+    pi2go::goBoth(speed);
+    
     delay(10);
 }

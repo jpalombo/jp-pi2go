@@ -5,6 +5,8 @@
 
 int ms_open();
 int ms_update();
+int angle_err();
+int gyro_err();
 int ms_close();
 
 #endif
