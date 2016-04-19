@@ -36,20 +36,21 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 # Object Files
 OBJECTFILES= \
 	${OBJECTDIR}/MotionSensor/I2Cdev/I2Cdev.o \
+	${OBJECTDIR}/MotionSensor/Monitor.o \
 	${OBJECTDIR}/MotionSensor/balance.o \
 	${OBJECTDIR}/MotionSensor/inv_mpu_lib/inv_mpu.o \
 	${OBJECTDIR}/MotionSensor/inv_mpu_lib/inv_mpu_dmp_motion_driver.o \
+	${OBJECTDIR}/MotionSensor/main.o \
 	${OBJECTDIR}/MotionSensor/pi2golite.o \
-	${OBJECTDIR}/MotionSensor/sensor.o \
-	${OBJECTDIR}/main.o
+	${OBJECTDIR}/MotionSensor/sensor.o
 
 
 # C Compiler Flags
 CFLAGS=-lwiringPi -lpthread
 
 # CC Compiler Flags
-CCFLAGS=-lwiringPi -lpthread
-CXXFLAGS=-lwiringPi -lpthread
+CCFLAGS=-lwiringPi -lpthread -std=c++11
+CXXFLAGS=-lwiringPi -lpthread -std=c++11
 
 # Fortran Compiler Flags
 FFLAGS=
@@ -73,6 +74,11 @@ ${OBJECTDIR}/MotionSensor/I2Cdev/I2Cdev.o: MotionSensor/I2Cdev/I2Cdev.c
 	${RM} "$@.d"
 	$(COMPILE.c) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/MotionSensor/I2Cdev/I2Cdev.o MotionSensor/I2Cdev/I2Cdev.c
 
+${OBJECTDIR}/MotionSensor/Monitor.o: MotionSensor/Monitor.cpp 
+	${MKDIR} -p ${OBJECTDIR}/MotionSensor
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/MotionSensor/Monitor.o MotionSensor/Monitor.cpp
+
 ${OBJECTDIR}/MotionSensor/balance.o: MotionSensor/balance.cpp 
 	${MKDIR} -p ${OBJECTDIR}/MotionSensor
 	${RM} "$@.d"
@@ -88,6 +94,11 @@ ${OBJECTDIR}/MotionSensor/inv_mpu_lib/inv_mpu_dmp_motion_driver.o: MotionSensor/
 	${RM} "$@.d"
 	$(COMPILE.c) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/MotionSensor/inv_mpu_lib/inv_mpu_dmp_motion_driver.o MotionSensor/inv_mpu_lib/inv_mpu_dmp_motion_driver.c
 
+${OBJECTDIR}/MotionSensor/main.o: MotionSensor/main.cpp 
+	${MKDIR} -p ${OBJECTDIR}/MotionSensor
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/MotionSensor/main.o MotionSensor/main.cpp
+
 ${OBJECTDIR}/MotionSensor/pi2golite.o: MotionSensor/pi2golite.cpp 
 	${MKDIR} -p ${OBJECTDIR}/MotionSensor
 	${RM} "$@.d"
@@ -97,11 +108,6 @@ ${OBJECTDIR}/MotionSensor/sensor.o: MotionSensor/sensor.cpp
 	${MKDIR} -p ${OBJECTDIR}/MotionSensor
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/MotionSensor/sensor.o MotionSensor/sensor.cpp
-
-${OBJECTDIR}/main.o: main.cpp 
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/main.o main.cpp
 
 # Subprojects
 .build-subprojects:

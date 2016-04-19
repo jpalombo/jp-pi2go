@@ -5,6 +5,8 @@
 #include <math.h>
 #include "sensor.h"
 #include <wiringPi.h>
+#include "Monitor.h"
+
 extern "C" {
 #include "inv_mpu_lib/inv_mpu.h"
 #include "inv_mpu_lib/inv_mpu_dmp_motion_driver.h"
@@ -16,13 +18,18 @@ unsigned long timestamp;
 #define DIM 3
 short accel[DIM]; // [x, y, z]           accel vector
 short gyro[DIM];  // [x, y, z]           gyro vector
-short gyrotrim;
-short acceltrim = 300;
+int gyrotrim = 200;
+int acceltrim = 5000;
 
-int ms_open() {
+extern Monitor * monitor;
+
+int mpu_open() {
 
     unsigned char devStatus; // return status after each device operation
 
+    //monitor->watch(&gyrotrim, "gyrotrim");
+    //monitor->watch(&acceltrim, "acceltrim");
+    
     // initialize device
     printf("Initializing MPU...\n");
     if (mpu_init(NULL) != 0) {
@@ -57,7 +64,7 @@ int ms_open() {
     int gyrosum = 0;
     int count = 0;
     printf("Calibrating...\n");
-    while (count < 1000)
+    while (count < 300)
     {
         if (mpu_get_gyro_reg(gyro, &timestamp) == 0) {
             gyrosum += gyro[0];
@@ -73,18 +80,31 @@ int ms_open() {
     return 0;
 }
 
-int angle_err(){
+int sensorAngle(){
     if (mpu_get_accel_reg(accel, &timestamp) == 0)
-        return (accel[2] * 1000 / accel[1]) - acceltrim;
+        return accel[2] - acceltrim;
     else
         return 0;
 }
 
-int gyro_err() {
+void updateAngleTrim(int offset) {
+    acceltrim += offset;
+}
+
+int sensorGyro() {
     if (mpu_get_gyro_reg(gyro, &timestamp) == 0)
         return gyro[0] - gyrotrim;
     else
         return 0;
+}
+
+void updateGyroTrim(int offset) {
+    gyrotrim += offset;
+}
+
+int wheelcount()
+{
+    
 }
 
 int ms_close() {

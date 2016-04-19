@@ -3,10 +3,12 @@
 
 #include <stdint.h>
 
-int ms_open();
+int mpu_open();
 int ms_update();
-int angle_err();
-int gyro_err();
+int sensorAngle();
+int sensorGyro();
+void updateGyroTrim(int offset);
+void updateAngleTrim(int offset);
 int ms_close();
 
 #endif

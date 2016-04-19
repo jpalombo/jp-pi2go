@@ -23,10 +23,15 @@ namespace pi2go {
     void goBoth(int speed);
     void stopL();
     void stopR();
+    void stepGo(int lspeed, int lcount, int rspeed, int rcount);
     void stepForward(int speed, int counts);
     void stepReverse(int speed, int counts);
     void stepSpinL(int speed, int counts);
     void stepSpinR(int speed, int counts);
+    int wheelCount ();
+    int speed();
+    int speedleft();
+    int speedright();
     void LsetLED(int LED, int value);
     bool irLeft();
     bool irRight();

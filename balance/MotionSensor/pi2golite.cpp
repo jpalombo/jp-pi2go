@@ -6,6 +6,7 @@
  */
 
 //include <stdio.h>
+#include <cstdlib>
 #include <unistd.h>
 #include <pthread.h>
 #include <stdio.h>
@@ -42,16 +43,15 @@ namespace pi2go {
 
     // Global variables for wheel sensor counting
     bool running = true;
-    int countL = 0;
-    int countR = 0;
-
-    int leftCount = 0;
-    int rightCount = 0;
-    int lastL = 0;
-    int lastR = 0;
+    int directionL = 0;
+    int directionR = 0;
+    int countLeft = 0;
+    int countRight = 0;
+    int speedLeft = 0;
+    int speedRight = 0;
 
     pthread_t threadC;
-    void * wheelCount(void * param);
+    void * trackWheelCount(void * param);
 
     //======================================================================
     // General Functions
@@ -97,7 +97,7 @@ namespace pi2go {
 
         // initialise wheel counters
         running = true;
-        pthread_create(&threadC, NULL, wheelCount, NULL);
+        pthread_create(&threadC, NULL, trackWheelCount, NULL);
     }
 
     // cleanup(). Sets all motors and LEDs off and sets GPIO to standard values
@@ -124,6 +124,11 @@ namespace pi2go {
         softPwmWrite(L2, 0);
         softPwmWrite(R1, 0);
         softPwmWrite(R2, 0);
+        directionL = 0;
+        directionR = 0;
+        countLeft = 0;
+        countRight = 0;
+
     }
 
     // forward(speed): Sets both motors to move forward at speed. 0 <= speed <= 100
@@ -133,6 +138,8 @@ namespace pi2go {
         softPwmWrite(L2, 0);
         softPwmWrite(R1, speed);
         softPwmWrite(R2, 0);
+        directionL = 1;
+        directionR = 1;
     }
 
     // reverse(speed): Sets both motors to reverse at speed. 0 <= speed <= 100
@@ -142,6 +149,8 @@ namespace pi2go {
         softPwmWrite(L2, speed);
         softPwmWrite(R1, 0);
         softPwmWrite(R2, speed);
+        directionL = -1;
+        directionR = -1;
     }
 
     // spinLeft(speed): Sets motors to turn opposite directions at speed. 0 <= speed <= 100
@@ -151,6 +160,9 @@ namespace pi2go {
         softPwmWrite(L2, speed);
         softPwmWrite(R1, speed);
         softPwmWrite(R2, 0);
+        directionL = -1;
+        directionR = 1;
+
     }
 
     // spinRight(speed): Sets motors to turn opposite directions at speed. 0 <= speed <= 100
@@ -160,6 +172,8 @@ namespace pi2go {
         softPwmWrite(L2, 0);
         softPwmWrite(R1, 0);
         softPwmWrite(R2, speed);
+        directionL = 1;
+        directionR = -1;
     }
 
     // turnForward(leftSpeed, rightSpeed): Moves forwards in an arc by setting different speeds. 0 <= leftSpeed,rightSpeed <= 100
@@ -169,6 +183,8 @@ namespace pi2go {
         softPwmWrite(L2, 0);
         softPwmWrite(R1, rightSpeed);
         softPwmWrite(R2, 0);
+        directionL = 1;
+        directionR = 1;
     }
 
     // turnReverse(leftSpeed, rightSpeed): Moves backwards in an arc by setting different speeds. 0 <= leftSpeed,rightSpeed <= 100
@@ -178,6 +194,9 @@ namespace pi2go {
         softPwmWrite(L2, leftSpeed);
         softPwmWrite(R1, 0);
         softPwmWrite(R2, rightSpeed);
+        directionL = -1;
+        directionR = -1;
+
     }
 
     // go(leftSpeed, rightSpeed): controls motors in both directions independently using different positive/negative speeds. -100<= leftSpeed,rightSpeed <= 100
@@ -186,16 +205,21 @@ namespace pi2go {
         if (leftSpeed < 0) {
             softPwmWrite(L1, 0);
             softPwmWrite(L2, -leftSpeed);
+            directionL = -1;
         } else {
             softPwmWrite(L1, leftSpeed);
             softPwmWrite(L2, 0);
+            directionL = 1;
         }
         if (rightSpeed < 0) {
             softPwmWrite(R1, 0);
             softPwmWrite(R2, -rightSpeed);
+            directionR = -1;
+
         } else {
             softPwmWrite(R1, rightSpeed);
             softPwmWrite(R2, 0);
+            directionR = 1;
         }
     }
 
@@ -226,24 +250,37 @@ namespace pi2go {
         softPwmWrite(R2, 0);
     }
 
-    void * wheelCount(void * param) {
+    void * trackWheelCount(void * param) {
+        
+        static int lastmicrosl = 0;
+        static int lastbut1microsl = 0;
+        static int lastmicrosr = 0;
+        static int lastbut1microsr = 0;
         int inval;
         int lastValidL = 2;
         int lastValidR = 2;
         int lastL = digitalRead(lineLeft);
         int lastR = digitalRead(lineRight);
         while (running) {
-            delay(2);
+            delay(1);
+            
             inval = digitalRead(lineLeft);
             if (inval == lastL && inval != lastValidL) {
-                countL++;
+                countLeft += directionL;
                 lastValidL = inval;
+                speedLeft = (10000000 * directionL) / ((int)micros() - lastbut1microsl);
+                lastbut1microsl = lastmicrosl;
+                lastmicrosl = micros();
             }
             lastL = inval;
+            
             inval = digitalRead(lineRight);
             if (inval == lastR and inval != lastValidR) {
-                countR++;
+                countRight += directionR;
                 lastValidR = inval;
+                speedRight = (10000000 * directionR) / ((int)micros() - lastbut1microsr);
+                lastbut1microsr = lastmicrosr;
+                lastmicrosr = micros();
             }
             lastR = inval;
         }
@@ -251,77 +288,52 @@ namespace pi2go {
 
     // stepForward(speed, steps): Moves forward specified number of counts, then stops
 
-    void stepForward(int speed, int counts) {
-        countL = 0;
-        countR = 0;
-        bool runL = true;
-        bool runR = true;
-        turnForward(speed, speed);
-        while (runL || runR) {
+    void stepGo(int lspeed, int lcount, int rspeed, int rcount) {
+        int startCountL = countLeft;
+        int startCountR = countRight;
+        while (std::abs(countLeft - startCountL) < lcount || std::abs(countRight - startCountR) < rcount) {
             delay(2);
-            if (countL >= counts) {
+            if (std::abs(countLeft - startCountL) >= lcount) {
                 stopL();
-                runL = false;
             }
-            if (countR >= counts) {
+            if (std::abs(countRight - startCountR) >= rcount) {
                 stopR();
-                runR = false;
             }
         }
     }
-
-    // stepReverse(speed, steps): Moves backward specified number of counts, then stops
+    
+    void stepForward(int speed, int counts) {
+        stepGo(speed, counts, speed, counts);
+    }
 
     void stepReverse(int speed, int counts) {
-        countL = 0;
-        countR = 0;
-        bool runL = true;
-        bool runR = true;
-        turnReverse(speed, speed);
-        while (runL || runR) {
-            delay(2);
-            if (countL >= counts) {
-                stopL();
-                runL = false;
-            }
-            if (countR >= counts) {
-                stopR();
-                runR = false;
-            }
-        }
+        stepGo(-speed, counts, -speed, counts);
     }
-
-    // stepSpinL(speed, steps): Spins left specified number of counts, then stops
 
     void stepSpinL(int speed, int counts) {
-        countL = 0;
-        countR = 0;
-        spinLeft(speed);
-        while (countL < counts || countR < counts) {
-            delay(2);
-            if (countL >= counts)
-                stopL();
-            if (countR >= counts)
-                stopR();
-        }
+        stepGo(speed, counts, -speed, counts);
     }
-
-    // stepSpinR(speed, steps): Spins right specified number of counts, then stops
 
     void stepSpinR(int speed, int counts) {
-        countL = 0;
-        countR = 0;
-        ;
-        spinRight(speed);
-        while (countL < counts or countR < counts) {
-            delay(2);
-            if (countL >= counts)
-                stopL();
-            if (countR >= counts)
-                stopR();
-        }
+        stepGo(-speed, counts, speed, counts);
     }
 
+    int wheelCount () {
+        return countLeft + countRight;
+    }
+    
+    int speed() {
+        return speedLeft + speedRight;
+    }
+
+    int speedleft() {
+        return speedLeft;
+    }
+
+    int speedright() {
+        return speedRight;
+    }
+    
     // End of Motor Functions
     //======================================================================
 

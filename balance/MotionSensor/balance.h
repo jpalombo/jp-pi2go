@@ -10,6 +10,7 @@
 
 void balance_init();
 void balance_loop();
+void balance_term();
 
 #endif /* BALANCE_H */
 
