@@ -5,7 +5,7 @@
  * Created on 06 March 2016, 06:51
  */
 
-#include "Monitor.h"
+#include "monitor.h"
 #include <iostream>
 #include <string>
 #include <cerrno>

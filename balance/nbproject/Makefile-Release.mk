@@ -36,11 +36,11 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 # Object Files
 OBJECTFILES= \
 	${OBJECTDIR}/MotionSensor/I2Cdev/I2Cdev.o \
-	${OBJECTDIR}/MotionSensor/Monitor.o \
 	${OBJECTDIR}/MotionSensor/balance.o \
 	${OBJECTDIR}/MotionSensor/inv_mpu_lib/inv_mpu.o \
 	${OBJECTDIR}/MotionSensor/inv_mpu_lib/inv_mpu_dmp_motion_driver.o \
 	${OBJECTDIR}/MotionSensor/main.o \
+	${OBJECTDIR}/MotionSensor/monitor.o \
 	${OBJECTDIR}/MotionSensor/pi2golite.o \
 	${OBJECTDIR}/MotionSensor/sensor.o
 
@@ -74,11 +74,6 @@ ${OBJECTDIR}/MotionSensor/I2Cdev/I2Cdev.o: MotionSensor/I2Cdev/I2Cdev.c
 	${RM} "$@.d"
 	$(COMPILE.c) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/MotionSensor/I2Cdev/I2Cdev.o MotionSensor/I2Cdev/I2Cdev.c
 
-${OBJECTDIR}/MotionSensor/Monitor.o: MotionSensor/Monitor.cpp 
-	${MKDIR} -p ${OBJECTDIR}/MotionSensor
-	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/MotionSensor/Monitor.o MotionSensor/Monitor.cpp
-
 ${OBJECTDIR}/MotionSensor/balance.o: MotionSensor/balance.cpp 
 	${MKDIR} -p ${OBJECTDIR}/MotionSensor
 	${RM} "$@.d"
@@ -98,6 +93,11 @@ ${OBJECTDIR}/MotionSensor/main.o: MotionSensor/main.cpp
 	${MKDIR} -p ${OBJECTDIR}/MotionSensor
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/MotionSensor/main.o MotionSensor/main.cpp
+
+${OBJECTDIR}/MotionSensor/monitor.o: MotionSensor/monitor.cpp 
+	${MKDIR} -p ${OBJECTDIR}/MotionSensor
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/MotionSensor/monitor.o MotionSensor/monitor.cpp
 
 ${OBJECTDIR}/MotionSensor/pi2golite.o: MotionSensor/pi2golite.cpp 
 	${MKDIR} -p ${OBJECTDIR}/MotionSensor

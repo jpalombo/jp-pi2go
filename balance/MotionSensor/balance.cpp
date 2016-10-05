@@ -10,7 +10,7 @@
 #include "sensor.h"
 #include <wiringPi.h>
 #include "pi2golite.h"
-#include "Monitor.h"
+#include "monitor.h"
 
 Monitor * monitor;
 // Global state variables that can be watched
@@ -19,30 +19,31 @@ int g_gyro = 0;
 int g_speed = 0;
 int g_speedint = 0;
 int g_gyroint = 0;
-int g_angleavg = 0;
-int g_angleint = 0;
 int g_gyrointerr = 0;
 int g_gyrointerrint = 0;
 int g_wheelcount = 0;
 int g_wheelspeed = 0;
+int g_angleint = 0;
+long double g_gyrointint = 0;
 
-int gyrointoffset = 2220000;
+int gyrointoffset = 2200000;
 int maxangle = 400;
 
-int gyrointfactor = 3500000; //P
-int wheelfactor = 300;     //I
-int gyrofactor = 400000;     //D
-int speedfactor = 10000;
+int gyrointfactor = 10000000; //P
+int wheelfactor = 10000000;     //I
+int gyrofactor = 10000000;     //D
+int speedfactor = 10000000;
+int anglefactor = 10000000;
 
 int g_P_angle;
 int g_I;
 int g_D;
 int g_P_speed;
 
-int g_Kp_angle = -800;
-int g_Ki = 200;
-int g_Kd = -1000;
-int g_Kp_speed = 800;
+int g_Kp_angle = -990;   //-800;
+int g_Ki = -10;            //200;
+int g_Kd = -26730;          //-1000;
+int g_Kp_speed = 0;   //800;
 
 int loopspersec = 500;
 int avgratio = 100;
@@ -72,10 +73,11 @@ void balance_init()
     monitor->watch(&g_D, "D");
     //monitor->watch(&g_D2, "D2");
     
-    monitor->control(&g_Kp_angle, "Kp angle", 5000, -5000);
-    monitor->control(&g_Kp_speed, "Kp speed", 5000, -5000);
-    monitor->control(&g_Ki, "Ki", 5000, -5000);
-    monitor->control(&g_Kd, "Kd", 5000, -5000);
+    monitor->control(&g_Kp_angle, "Kp angle", 50000, -50000);
+    monitor->control(&g_Kp_speed, "Kp speed", 50000, -50000);
+    monitor->control(&g_Ki, "Ki", 50000, -50000);
+    monitor->control(&g_Kd, "Kd", 50000, -50000);
+    monitor->control(&gyrointoffset, "Angle offset", 3000000,2000000);
 }
 
 void balance_term() {
@@ -111,49 +113,50 @@ void balance_loop()
 {
     static int loopcount = 0;
     static bool started = false;
-    static int impulsecount = 0;
-    static int lastgyrointegral = 0;
-    static int lastangleint = 0;
+    //static int lastgyrointegral = 0;
+    //static int lastangleint = 0;
     int newspeed;
     
     loopcount++;
     timeloop(loopcount);  // Print how many loops per second we are getting
-    if ((loopcount % loopspersec) == 0) {
+
+    /*if ((loopcount % loopspersec) == 0) {
         // Here roughly once per second
+        
+        //  Make some slow corrections to the angle offset and the gyro trim
         updateGyroTrim(dir(g_gyroint - lastgyrointegral));
         lastgyrointegral = g_gyroint;
         if (started) {
             updateAngleTrim(30 * dir(g_angleint - lastangleint));
             lastangleint = g_angleint;
         }
-    }
+    }*/
     
     g_angle = sensorAngle();
-    g_angleavg = ((g_angleavg * avgratio) + g_angle) / (avgratio + 1);
-    if (started) {
-        g_angleint += g_angle;
-        //gyrointoffset += g_P;
-    }
     g_gyro = sensorGyro();
     g_gyroint += (g_gyro >> 1);   // Divide by 2 to stop overflow on gyroint
     g_gyrointerr = g_gyroint - gyrointoffset;
+    g_gyrointint += g_gyrointerr;
     g_wheelcount = pi2go::wheelCount();
     g_wheelspeed = pi2go::speed();
-    
+
+   // Detect if we are on the floor 
     if (!started && abs(g_gyro) < 10 && abs(g_angle) > 10000) {
-        g_gyroint = 0;  // Zero the gyroint when we are on the floor
+        g_gyroint = 0;
     }
     
+    // Detect if we are upright and should start
     if (!started && abs(g_angle) < 100) {
         started = true;
         std::cout << "started 1 " << g_angle << std::endl;
-        g_angleint = 0;
         g_speedint = 0;
+        g_gyrointint = 0;
+        g_angleint = 0;
     }
    
     g_P_angle  = g_Kp_angle * g_gyrointerr / gyrointfactor;  //P angle
     g_P_speed = g_Kp_speed * g_wheelspeed / speedfactor;
-    g_I  = g_Ki * g_wheelcount / wheelfactor;    //I
+    g_I  = g_Ki * g_gyrointint / anglefactor;    //I
     g_D = g_Kd * g_gyro / gyrofactor;           //D
     
     newspeed = g_P_speed + g_P_angle + g_I + g_D;
@@ -161,24 +164,8 @@ void balance_loop()
     if (!started) {
         return;
     }
-    
-    /*
-    if (abs(g_wheelcount > 10) && (dir(newspeed) * dir(g_wheelcount)) > 0) {
-        // We are starting to drift and the speed is in the same direction as the drift
-        // Add an impulse to reverse direction.  Do this by increasing
-        // Motor speed for a short period
-        newspeed = newspeed * 2;
-        impulsecount = 10;
-    }
-    */
-    
-    // Add the average speed over the last half second.
-    // Half second should include two wobbles, so is a decent long term average
-    // Add it because that will tend to stop forward motion
-    
-    //g_speed += g_wheelcount;
-    
-    
+
+    // Detect if we are at the speed limit and stop if we are
     if (abs(newspeed) > 100){
         pi2go::stop();
         started = false;

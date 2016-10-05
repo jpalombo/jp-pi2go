@@ -5,7 +5,7 @@
 #include <math.h>
 #include "sensor.h"
 #include <wiringPi.h>
-#include "Monitor.h"
+#include "monitor.h"
 
 extern "C" {
 #include "inv_mpu_lib/inv_mpu.h"
